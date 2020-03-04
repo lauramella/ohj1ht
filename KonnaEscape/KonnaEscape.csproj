@@ -13,4 +13,10 @@
     <PackageReference Include="Jypeli.Physics2d.Core" Version="1.4.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="kentta">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

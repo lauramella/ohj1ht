@@ -9,9 +9,9 @@ public class KonnaEscape : PhysicsGame
 {
     public override void Begin()
     {
-        // Kirjoita ohjelmakoodisi tähän
+        SetWindowSize(1024, 768);
+        TileMap kentta = TileMap.FromLevelAsset("kentta");
 
-        PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
     }
 }
