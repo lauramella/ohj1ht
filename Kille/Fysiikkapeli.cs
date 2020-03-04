@@ -16,10 +16,14 @@ public class Kille : PhysicsGame
     public override void Begin()
     {
         SetWindowSize(1024, 768);
-        TileMap kentta = TileMap.FromLevelAsset("kentta");
+        TileMap kentta = TileMap.FromLevelAsset("kentta2");
         kentta.SetTileMethod('x', LuoLattia);
         kentta.SetTileMethod('t', LuoTaso);
         kentta.SetTileMethod('p', LuoPelaaja);
+        kentta.SetTileMethod('v', LuoVihu, 3);
+        kentta.SetTileMethod('v', LuoVihu, 3);
+        kentta.SetTileMethod('v', LuoVihu, 3);
+
         kentta.Optimize('t');
         kentta.Execute(BLOKIN_LEVEYS, BLOKIN_KORKEUS);
 
@@ -45,6 +49,26 @@ public class Kille : PhysicsGame
         Keyboard.Listen(Key.Up, ButtonState.Pressed, Hyppaa, "Hyppää", pelaaja, HYPPYVOIMA);
 
     }
+
+    public void LuoVihu(Vector paikka, double leveys, double korkeus, int liikemaara)
+    {
+        PhysicsObject vihu = new PhysicsObject(leveys, korkeus);
+        vihu.Position = paikka;
+        vihu.Image = LoadImage("pallo1");
+        vihu.Shape = Shape.Circle;
+        vihu.CanRotate = false;
+        Add(vihu);
+
+        PathFollowerBrain pfb = new PathFollowerBrain();
+        List<Vector> reitti = new List<Vector>();
+        reitti.Add(vihu.Position);
+        Vector seuraavaPiste = vihu.Position + new Vector(liikemaara * BLOKIN_LEVEYS, 0);
+        reitti.Add(seuraavaPiste);
+        pfb.Path = reitti;
+        pfb.Loop = true;
+        vihu.Brain = pfb;
+    }
+
     public void Hyppaa(PlatformCharacter hahmo, double voima)
     {
         hahmo.Jump(voima);
