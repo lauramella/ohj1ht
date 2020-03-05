@@ -12,23 +12,24 @@ public class Kille : PhysicsGame
     const double HYPPYVOIMA = 2000;
     const double BLOKIN_LEVEYS = 80;
     const double BLOKIN_KORKEUS = 80;
+    
 
     public override void Begin()
     {
+
         SetWindowSize(1024, 768);
         TileMap kentta = TileMap.FromLevelAsset("kentta2");
         kentta.SetTileMethod('x', LuoLattia);
-        kentta.SetTileMethod('t', LuoTaso);
+        kentta.SetTileMethod('1', LuoTaso);
+        kentta.SetTileMethod('2', LuoTaso);
+        kentta.SetTileMethod('3', LuoTaso);
         kentta.SetTileMethod('p', LuoPelaaja);
-        kentta.SetTileMethod('v', LuoVihu, 3);
-        kentta.SetTileMethod('v', LuoVihu, 3);
-        kentta.SetTileMethod('v', LuoVihu, 3);
-
-        kentta.Optimize('t');
+        kentta.SetTileMethod('v', LuoVihu, 2);
+        kentta.SetTileMethod('v', LuoVihu, 2);
+        kentta.SetTileMethod('v', LuoVihu, 2);
         kentta.Execute(BLOKIN_LEVEYS, BLOKIN_KORKEUS);
 
-
-
+        Level.Background.CreateStars();
         Level.CreateBorders();
         Camera.ZoomToLevel();
 
@@ -82,6 +83,9 @@ public class Kille : PhysicsGame
     {
         PhysicsObject taso = new PhysicsObject(leveys, korkeus);
         taso.Position = paikka;
+        taso.Image = LoadImage("taso");
+        taso.Image = LoadImage("taso2");
+        taso.Image = LoadImage("taso3");
         taso.MakeStatic();
         Add(taso);
     }
@@ -89,6 +93,7 @@ public class Kille : PhysicsGame
     {
         PhysicsObject lattia = new PhysicsObject(leveys, korkeus);
         lattia.Position = paikka;
+        lattia.Image = LoadImage("taso");
         lattia.MakeStatic();
         Add(lattia);
     }
