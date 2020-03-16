@@ -23,7 +23,7 @@ public class Kille : PhysicsGame
     public override void Begin()
     {
         SetWindowSize(1024, 768);
-        TileMap kentta = TileMap.FromLevelAsset("kentta2");
+        TileMap kentta = TileMap.FromLevelAsset("kentta");
         kentta.SetTileMethod('t', LuoTaso, "taso");
         kentta.SetTileMethod('T', LuoTaso, "taso2");
         kentta.SetTileMethod('a', LuoTaso, "taso3");
@@ -53,7 +53,7 @@ public class Kille : PhysicsGame
     {
         PlatformCharacter pelaaja = new PlatformCharacter(leveys, korkeus);
         pelaaja.Position = paikka;
-        pelaaja.Image = LoadImage("kille1");
+        pelaaja.Image = LoadImage("pelaaja");
         Add(pelaaja);
 
         Keyboard.Listen(Key.Right, ButtonState.Down, Liikuta, "Liikuta pelaajaa oikealle", pelaaja, LIIKUTUSVOIMA);
@@ -67,7 +67,7 @@ public class Kille : PhysicsGame
         PhysicsObject vihu = new PhysicsObject(80, 80, Shape.Circle);
         Vector vihunSijainti;
         vihunSijainti = RandomGen.NextVector(Level.BoundingRect);
-        //vihu.Position = vihunSijainti;
+        vihu.Position = vihunSijainti;
         vihu.Image = LoadImage("pallo1");
         vihu.CanRotate = false;
         AddCollisionHandler<PhysicsObject, PlatformCharacter>(vihu, PelaajaTormasiVihuun);
@@ -98,25 +98,25 @@ public class Kille : PhysicsGame
         pistenaytto.Y = Screen.Top - 10;
         Add(pistenaytto);
     }
- 
+
     /// <summary> 
-    /// Pelaajas the tormasi viholliseen.
+    ///  Pelaaja törmäsi vihuun.
     /// </summary>
-    /// <param name="pelaaja">Pelaaja.</param>
-    /// <param name="vihu">Vihollinen.</param>
+    /// <param name="pelaaja">Pelaaja</param>
+    /// <param name="vihu">Vihu</param>
     public void PelaajaTormasiVihuun(PhysicsObject pelaaja, PhysicsObject vihu)
-        {
-       PlatformCharacter hahmo = pelaaja as PlatformCharacter;
+    {
+        PlatformCharacter hahmo = pelaaja as PlatformCharacter;
         pelaajanTerveys--;
         pelaaja.Destroy();
-       if (pelaajanTerveys <= 0)
-       {
-        vihu.Destroy();
-        LuoLoppuValikko();
-      }
+        if (pelaajanTerveys <= 0)
+        {
+            vihu.Destroy();
+            LuoLoppuValikko();
+        }
     }
+    
 
-   
     private void LuoLoppuValikko()
     {
         MultiSelectWindow loppuValikko = new MultiSelectWindow("Hienoa! Sait " + pisteLaskuri.Value + " pistettä", "Aloita peli uudestaan", "Lopeta");
@@ -124,8 +124,6 @@ public class Kille : PhysicsGame
         loppuValikko.AddItemHandler(1, Exit);
         Add(loppuValikko);
             }
-
-
       public void AloitaPeliUudestaan()
         {
         ClearAll();
