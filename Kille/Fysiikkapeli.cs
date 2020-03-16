@@ -5,30 +5,41 @@ using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Widgets;
 
-public class Kille : PhysicsGame
-{
+/// <summary>
+///  TODO: Lisää äänet
+///  TODO: Dokumentointi
+/// </summary>
 
-    const double LIIKUTUSVOIMA = 500;
+public class Kille : PhysicsGame
+{    
+    const double LIIKUTUSVOIMA = 600;
     const double HYPPYVOIMA = 2000;
     const double BLOKIN_LEVEYS = 80;
     const double BLOKIN_KORKEUS = 80;
+    public int pelaajanTerveys = 3;
     
+  
 
     public override void Begin()
     {
-
         SetWindowSize(1024, 768);
         TileMap kentta = TileMap.FromLevelAsset("kentta2");
-        kentta.SetTileMethod('x', LuoLattia);
-        kentta.SetTileMethod('t', LuoTaso);
-        kentta.SetTileMethod('T', LuoTaso);
-        kentta.SetTileMethod('a', LuoTaso);
+        kentta.SetTileMethod('t', LuoTaso, "taso");
+        kentta.SetTileMethod('T', LuoTaso, "taso2");
+        kentta.SetTileMethod('a', LuoTaso, "taso3");
         kentta.SetTileMethod('p', LuoPelaaja);
-        kentta.SetTileMethod('3', LuoVihu, 2, 3);
-        kentta.SetTileMethod('4', LuoVihu, 2, 3);
-        kentta.SetTileMethod('v', LuoVihu, 2, 3);
         kentta.Execute(BLOKIN_LEVEYS, BLOKIN_KORKEUS);
+        LuoPistelaskuri();
+        List<PhysicsObject> vihut = new List<PhysicsObject>();
 
+        Timer lisaysAjastin = new Timer();
+        lisaysAjastin.Interval = 1.3;
+        lisaysAjastin.Timeout += delegate ()
+        {
+            LuoVihu(vihut, "Vihu");
+        };
+        lisaysAjastin.Start();
+        
         Level.Background.CreateStars();
         Level.CreateBorders();
         Camera.ZoomToLevel();
@@ -37,90 +48,118 @@ public class Kille : PhysicsGame
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
     }
 
-
+    
     public void LuoPelaaja(Vector paikka, double leveys, double korkeus)
     {
         PlatformCharacter pelaaja = new PlatformCharacter(leveys, korkeus);
         pelaaja.Position = paikka;
         pelaaja.Image = LoadImage("kille1");
         Add(pelaaja);
-        //AddCollisionHandler(pelaaja, "vihunAmmus", CollisionHandler.DestroyObject);
+
         Keyboard.Listen(Key.Right, ButtonState.Down, Liikuta, "Liikuta pelaajaa oikealle", pelaaja, LIIKUTUSVOIMA);
         Keyboard.Listen(Key.Left, ButtonState.Down, Liikuta, "Liikuta pelaajaa vasemmalle", pelaaja, -LIIKUTUSVOIMA);
         Keyboard.Listen(Key.Up, ButtonState.Pressed, Hyppaa, "Hyppää", pelaaja, HYPPYVOIMA);
-        Keyboard.Listen(Key.Space, ButtonState.Pressed, Heita, "Heita ammus", pelaaja, "pelaajanAmmus");
+        Keyboard.Listen(Key.Space, ButtonState.Pressed, Heita, "Heita ammus", pelaaja, "Ammus");
     }
 
-    public void LuoVihu(Vector paikka, double leveys, double korkeus, int liikemaara, int hp)
+    public void LuoVihu(List<PhysicsObject> vihut, string tagi)
     {
-     
-        Vihu vihu = new Vihu(leveys, korkeus, hp);
-        vihu.Position = paikka;
+        PhysicsObject vihu = new PhysicsObject(80, 80, Shape.Circle);
+        Vector vihunSijainti;
+        vihunSijainti = RandomGen.NextVector(Level.BoundingRect);
+        //vihu.Position = vihunSijainti;
         vihu.Image = LoadImage("pallo1");
-        vihu.Shape = Shape.Circle;
         vihu.CanRotate = false;
+        AddCollisionHandler<PhysicsObject, PlatformCharacter>(vihu, PelaajaTormasiVihuun);
+        tagi = "Vihu";
+        AddCollisionHandler(vihu, "Ammus", CollisionHandler.DestroyObject);
+        AddCollisionHandler(vihu, "Ammus", Osuma);
+
+        RandomMoverBrain vihunAivot = new RandomMoverBrain();
+        vihunAivot.Speed = 400;
+        vihu.Brain = vihunAivot;
+        vihunAivot.ChangeMovementSeconds = 1;
         Add(vihu);
-
-        PathFollowerBrain pfb = new PathFollowerBrain();
-        List<Vector> reitti = new List<Vector>();
-        reitti.Add(vihu.Position);
-        Vector seuraavaPiste = vihu.Position + new Vector(liikemaara * BLOKIN_LEVEYS, 0);
-        reitti.Add(seuraavaPiste);
-        pfb.Path = reitti;
-        pfb.Loop = true;
-        vihu.Brain = pfb;
-
-        Timer heittoajastin = new Timer();
-        heittoajastin.Interval = 3.0;
-        heittoajastin.Timeout += delegate () { Heita(vihu, "vihunAmmus"); };
-        heittoajastin.Start();
-        AddCollisionHandler(vihu, "pelaajanAmmus", CollisionHandler.DestroyTarget);
-            AddCollisionHandler(vihu, "pelaajanAmmus", CollisionHandler.AddMeterValue(vihu.HP, -1));
-            vihu.Destroyed += delegate () { heittoajastin.Stop(); };
     }
 
-
+    public void Osuma(PhysicsObject vihu, PhysicsObject ammus)
+    {
+        pisteLaskuri.Value +=1;
+    }
+    IntMeter pisteLaskuri;
+    private void LuoPistelaskuri()
+    {
+     pisteLaskuri = new IntMeter(0);
+     Label pistenaytto = new Label();
+        pistenaytto.BindTo(pisteLaskuri);
+        pistenaytto.Color = Color.Red; // Taustaväri
+        pistenaytto.TextColor = Color.Black; // Tekstin väri
+        pistenaytto.Title = "Pisteet";
+        pistenaytto.Y = Screen.Top - 10;
+        Add(pistenaytto);
+    }
  
-
-
-
-
-    public void Heita(PhysicsObject heittavaOlio, string tagi)
-    {
-        PhysicsObject heitettava = new PhysicsObject(BLOKIN_LEVEYS / 2, BLOKIN_KORKEUS / 2, Shape.Heart);
-        heitettava.Position = heittavaOlio.Position + new Vector(BLOKIN_LEVEYS/2, BLOKIN_KORKEUS/2);
-        heitettava.Hit(new Vector(800, 200));
-        heitettava.Tag = "vihunAmmus";
-        heitettava.MaximumLifetime = TimeSpan.FromSeconds(3.0);
-        Add(heitettava, 1);
+    /// <summary> 
+    /// Pelaajas the tormasi viholliseen.
+    /// </summary>
+    /// <param name="pelaaja">Pelaaja.</param>
+    /// <param name="vihu">Vihollinen.</param>
+    public void PelaajaTormasiVihuun(PhysicsObject pelaaja, PhysicsObject vihu)
+        {
+       PlatformCharacter hahmo = pelaaja as PlatformCharacter;
+        pelaajanTerveys--;
+        pelaaja.Destroy();
+       if (pelaajanTerveys <= 0)
+       {
+        vihu.Destroy();
+        LuoLoppuValikko();
+      }
     }
 
-
-    public void Hyppaa(PlatformCharacter hahmo, double voima)
+   
+    private void LuoLoppuValikko()
     {
-        hahmo.Jump(voima);
-    }
-    public void Liikuta(PlatformCharacter vihu, double suunta)
+        MultiSelectWindow loppuValikko = new MultiSelectWindow("Hienoa! Sait " + pisteLaskuri.Value + " pistettä", "Aloita peli uudestaan", "Lopeta");
+        loppuValikko.AddItemHandler(0, AloitaPeliUudestaan);
+        loppuValikko.AddItemHandler(1, Exit);
+        Add(loppuValikko);
+            }
+
+
+      public void AloitaPeliUudestaan()
+        {
+        ClearAll();
+        pelaajanTerveys += 3;
+        Begin();
+         }
+
+
+    public void Heita(PhysicsObject pelaaja, string tagi)
     {
-        vihu.Walk(suunta);
+        PhysicsObject ammus = new PhysicsObject(BLOKIN_LEVEYS / 2, BLOKIN_KORKEUS / 2, Shape.Star);
+        ammus.Position = pelaaja.Position + new Vector(BLOKIN_LEVEYS/2, BLOKIN_KORKEUS/2);
+        ammus.Hit(new Vector(800, 350));
+        ammus.Tag = "Ammus";
+        ammus.MaximumLifetime = TimeSpan.FromSeconds(2.0);
+        Add(ammus, 1);
     }
 
-    public void LuoTaso(Vector paikka, double leveys, double korkeus)
+    public void Hyppaa(PlatformCharacter pelaaja, double voima)
+    {
+        pelaaja.Jump(voima);
+    }
+    public void Liikuta(PlatformCharacter pelaaja, double suunta)
+    {
+        pelaaja.Walk(suunta);
+    }
+
+    public void LuoTaso(Vector paikka, double leveys, double korkeus, string tekstuuri)
     {
         PhysicsObject taso = new PhysicsObject(leveys, korkeus);
         taso.Position = paikka;
-        taso.Image = LoadImage("taso");
-        taso.Image = LoadImage("taso2");
-        taso.Image = LoadImage("taso3");
+        taso.Image = LoadImage(tekstuuri);
         taso.MakeStatic();
         Add(taso);
     }
-    public void LuoLattia(Vector paikka, double leveys, double korkeus)
-    {
-        PhysicsObject lattia = new PhysicsObject(leveys, korkeus);
-        lattia.Position = paikka;
-        lattia.Image = LoadImage("taso");
-        lattia.MakeStatic();
-        Add(lattia);
-    }
+
 }

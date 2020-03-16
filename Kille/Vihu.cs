@@ -5,16 +5,17 @@ using Jypeli;
 
 
 
-public class Vihu : PhysicsObject
+
+class Konna : PlatformCharacter
 {
-    public IntMeter HP;
+    public int HP { get; set; }
+  
 
-    public Vihu(double leveys, double korkeus, int elamapisteet)
-        :base(leveys, korkeus)
+    public Konna(double leveys, double korkeus, int elamat)
+        : base(leveys, korkeus)
     {
-        HP = new IntMeter(elamapisteet, 0, elamapisteet);
-        HP.LowerLimit += delegate () { this.Destroy(); };
+        HP = 3;
     }
-
 }
+
 
