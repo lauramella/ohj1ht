@@ -6,9 +6,12 @@ using Jypeli.Controls;
 using Jypeli.Widgets;
 
 /// <summary>
-///  TODO: Lisää äänet
-///  TODO: Dokumentointi
+/// @author Laura Mella
+/// @version 17.03.2020
+/// Pelissä tarkoitus väistellä keltaisia palloja sekä kerätä pisteitä ampumalla niitä. 
+/// Pelin alussa kilpikonnalla eli pelaajalla on kolme elämää.
 /// </summary>
+
 
 public class Kille : PhysicsGame
 {    
@@ -17,9 +20,26 @@ public class Kille : PhysicsGame
     const double BLOKIN_LEVEYS = 80;
     const double BLOKIN_KORKEUS = 80;
     public int pelaajanTerveys = 3;
-    
-  
+    IntMeter pisteLaskuri;
 
+    /// <summary>
+    /// Luodaan pistelaskuri ja näyttö.
+    /// </summary>
+    private void LuoPistelaskuri()
+    {
+        pisteLaskuri = new IntMeter(0);
+        Label pistenaytto = new Label();
+        pistenaytto.BindTo(pisteLaskuri);
+        pistenaytto.Color = Color.Red; // Taustaväri
+        pistenaytto.TextColor = Color.Black; // Tekstin väri
+        pistenaytto.Title = "Pisteet";
+        pistenaytto.Y = Screen.Top - 10; //Pistenäytön sijainti pelikentällä
+        Add(pistenaytto);
+    }
+
+    /// <summary>
+    /// Aloitetaan peli, luodaan kenttä sekä käynnistetään ajastin, joka kutsuu aliohjelmaa, joka luo vihuja.
+    /// </summary>
     public override void Begin()
     {
         SetWindowSize(1024, 768);
@@ -29,11 +49,11 @@ public class Kille : PhysicsGame
         kentta.SetTileMethod('a', LuoTaso, "taso3");
         kentta.SetTileMethod('p', LuoPelaaja);
         kentta.Execute(BLOKIN_LEVEYS, BLOKIN_KORKEUS);
-        LuoPistelaskuri();
+        LuoPistelaskuri(); //Aliohjelmakutsu pistelaskurille
         List<PhysicsObject> vihut = new List<PhysicsObject>();
 
         Timer lisaysAjastin = new Timer();
-        lisaysAjastin.Interval = 1.3;
+        lisaysAjastin.Interval = 1.2; 
         lisaysAjastin.Timeout += delegate ()
         {
             LuoVihu(vihut, "Vihu");
@@ -48,7 +68,12 @@ public class Kille : PhysicsGame
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
     }
 
-    
+    /// <summary>
+    /// Luodaan pelaaja sekä lisätään näppäimet, joilla sitä liikutetaan sekä ammutaan.
+    /// </summary>
+    /// <param name="paikka">Mihin pelaaja luodaan</param>
+    /// <param name="leveys">Pelaajan leveys</param>
+    /// <param name="korkeus">Pelaajan korkeus</param>
     public void LuoPelaaja(Vector paikka, double leveys, double korkeus)
     {
         PlatformCharacter pelaaja = new PlatformCharacter(leveys, korkeus);
@@ -62,6 +87,11 @@ public class Kille : PhysicsGame
         Keyboard.Listen(Key.Space, ButtonState.Pressed, Heita, "Heita ammus", pelaaja, "Ammus");
     }
 
+    /// <summary>
+    /// Aliohjelma, jossa luodaan vihut ja lisätään niille tekoäly.
+    /// </summary>
+    /// <param name="vihut">vihut</param>
+    /// <param name="tagi">Vihun tagi</param>
     public void LuoVihu(List<PhysicsObject> vihut, string tagi)
     {
         PhysicsObject vihu = new PhysicsObject(80, 80, Shape.Circle);
@@ -70,8 +100,8 @@ public class Kille : PhysicsGame
         vihu.Position = vihunSijainti;
         vihu.Image = LoadImage("pallo1");
         vihu.CanRotate = false;
-        AddCollisionHandler<PhysicsObject, PlatformCharacter>(vihu, PelaajaTormasiVihuun);
         tagi = "Vihu";
+        AddCollisionHandler<PhysicsObject, PlatformCharacter>(vihu, PelaajaTormasiVihuun);
         AddCollisionHandler(vihu, "Ammus", CollisionHandler.DestroyObject);
         AddCollisionHandler(vihu, "Ammus", Osuma);
 
@@ -82,25 +112,23 @@ public class Kille : PhysicsGame
         Add(vihu);
     }
 
+    /// <summary>
+    /// Lisätään pistelaskuriin piste, kun ammus osuu vihuun
+    /// Äänitehoste pisteen saamisesta
+    /// </summary>
+    /// <param name="vihu">vihollinen</param>
+    /// <param name="ammus">pelaajan ammus</param>
     public void Osuma(PhysicsObject vihu, PhysicsObject ammus)
     {
+        SoundEffect pisteAani = LoadSoundEffect("piste");
+        pisteAani.Play();
         pisteLaskuri.Value +=1;
     }
-    IntMeter pisteLaskuri;
-    private void LuoPistelaskuri()
-    {
-     pisteLaskuri = new IntMeter(0);
-     Label pistenaytto = new Label();
-        pistenaytto.BindTo(pisteLaskuri);
-        pistenaytto.Color = Color.Red; // Taustaväri
-        pistenaytto.TextColor = Color.Black; // Tekstin väri
-        pistenaytto.Title = "Pisteet";
-        pistenaytto.Y = Screen.Top - 10;
-        Add(pistenaytto);
-    }
+
 
     /// <summary> 
-    ///  Pelaaja törmäsi vihuun.
+    ///  Pelaaja törmäsi vihuun. Kolmannesta törmäyksestä peliloppuu.
+    ///  Törmäykselle äänitehoste.
     /// </summary>
     /// <param name="pelaaja">Pelaaja</param>
     /// <param name="vihu">Vihu</param>
@@ -108,6 +136,8 @@ public class Kille : PhysicsGame
     {
         PlatformCharacter hahmo = pelaaja as PlatformCharacter;
         pelaajanTerveys--;
+        SoundEffect osumaAani = LoadSoundEffect("osuma");
+        osumaAani.Play();
         pelaaja.Destroy();
         if (pelaajanTerveys <= 0)
         {
@@ -116,22 +146,37 @@ public class Kille : PhysicsGame
         }
     }
     
-
-    private void LuoLoppuValikko()
+    /// <summary>
+    /// Luodaan loppuvalikko, jossa taustamusiikki.
+    /// Loppuvalikosta näkyy pelissä kerätyt pisteet ja vaihtoehtoina on aloittaa peli uudestaan tai lopettaa peli.
+    /// </summary>
+    public void LuoLoppuValikko()
     {
-        MultiSelectWindow loppuValikko = new MultiSelectWindow("Hienoa! Sait " + pisteLaskuri.Value + " pistettä", "Aloita peli uudestaan", "Lopeta");
+        MultiSelectWindow loppuValikko = new MultiSelectWindow("Hienoa! Sait " + pisteLaskuri.Value + " pistettä.", "Aloita peli uudestaan", "Lopeta");
         loppuValikko.AddItemHandler(0, AloitaPeliUudestaan);
         loppuValikko.AddItemHandler(1, Exit);
+        SoundEffect loppuAani = LoadSoundEffect("loppu");
+        loppuAani.Play();
         Add(loppuValikko);
-            }
+
+    }
+
+    /// <summary>
+    /// Aliohjelma, joka aloittaa pelin uudestaan ja nollaa laskurit
+    /// </summary>
       public void AloitaPeliUudestaan()
         {
-        ClearAll();
+        ClearAll();          
         pelaajanTerveys += 3;
         Begin();
          }
 
 
+    /// <summary>
+    /// Pelaaja heittää ammuksen
+    /// </summary>
+    /// <param name="pelaaja">Pelaaja</param>
+    /// <param name="tagi">Ammus</param>
     public void Heita(PhysicsObject pelaaja, string tagi)
     {
         PhysicsObject ammus = new PhysicsObject(BLOKIN_LEVEYS / 2, BLOKIN_KORKEUS / 2, Shape.Star);
@@ -142,15 +187,35 @@ public class Kille : PhysicsGame
         Add(ammus, 1);
     }
 
+    /// <summary>
+    /// Pelaaja hyppää
+    /// </summary>
+    /// <param name="pelaaja">Pelaaja</param>
+    /// <param name="voima">Hyppyvoima, määritelty ohjelman alussa vakiona</param>
     public void Hyppaa(PlatformCharacter pelaaja, double voima)
     {
         pelaaja.Jump(voima);
+        SoundEffect hyppyAani = LoadSoundEffect("jump");
+        hyppyAani.Play();
     }
+
+    /// <summary>
+    /// Pelaajan liikutus
+    /// </summary>
+    /// <param name="pelaaja">Pelaaja</param>
+    /// <param name="suunta">Suunta</param>
     public void Liikuta(PlatformCharacter pelaaja, double suunta)
     {
         pelaaja.Walk(suunta);
     }
 
+    /// <summary>
+    /// Luodaan tasot
+    /// </summary>
+    /// <param name="paikka">Mihin taso luodaan</param>
+    /// <param name="leveys">Tason leveys</param>
+    /// <param name="korkeus">Tason korkeus</param>
+    /// <param name="tekstuuri">Tasojen tekstuuri</param>
     public void LuoTaso(Vector paikka, double leveys, double korkeus, string tekstuuri)
     {
         PhysicsObject taso = new PhysicsObject(leveys, korkeus);
