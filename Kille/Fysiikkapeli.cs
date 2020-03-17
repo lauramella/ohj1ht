@@ -5,11 +5,13 @@ using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Widgets;
 
-/// <summary>
 /// @author Laura Mella
 /// @version 17.03.2020
-/// Pelissä tarkoitus väistellä keltaisia palloja sekä kerätä pisteitä ampumalla niitä. 
-/// Pelin alussa kilpikonnalla eli pelaajalla on kolme elämää.
+
+/// <summary>
+/// Tasohyppelypeli
+/// Keltaiset pallot yrittävät valloittaa ruudun! Pelin tarkoitus väistellä keltaisia palloja sekä kerätä pisteitä ampumalla niitä. 
+/// Pelin alussa kilpikonnalla eli pelaajalla on kolme elämää ja se menettää yhden elämän osuessaan viholliseen eli palloon. 
 /// </summary>
 
 
@@ -19,13 +21,13 @@ public class Kille : PhysicsGame
     const double HYPPYVOIMA = 2000;
     const double BLOKIN_LEVEYS = 80;
     const double BLOKIN_KORKEUS = 80;
-    public int pelaajanTerveys = 3;
-    IntMeter pisteLaskuri;
+    public int pelaajanElama = 3;
+    public IntMeter pisteLaskuri;
 
     /// <summary>
     /// Luodaan pistelaskuri ja näyttö.
     /// </summary>
-    private void LuoPistelaskuri()
+    public void LuoPistelaskuri()
     {
         pisteLaskuri = new IntMeter(0);
         Label pistenaytto = new Label();
@@ -135,11 +137,11 @@ public class Kille : PhysicsGame
     public void PelaajaTormasiVihuun(PhysicsObject pelaaja, PhysicsObject vihu)
     {
         PlatformCharacter hahmo = pelaaja as PlatformCharacter;
-        pelaajanTerveys--;
+        pelaajanElama--;
         SoundEffect osumaAani = LoadSoundEffect("osuma");
         osumaAani.Play();
         pelaaja.Destroy();
-        if (pelaajanTerveys <= 0)
+        if (pelaajanElama <= 0)
         {
             vihu.Destroy();
             LuoLoppuValikko();
@@ -167,7 +169,7 @@ public class Kille : PhysicsGame
       public void AloitaPeliUudestaan()
         {
         ClearAll();          
-        pelaajanTerveys += 3;
+        pelaajanElama += 3;
         Begin();
          }
 
