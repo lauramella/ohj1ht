@@ -11,7 +11,7 @@ using Jypeli.Widgets;
 
 /// <summary>
 /// Tasohyppelypeli
-/// Keltaiset pallot yrittävät valloittaa ruudun! Pelin tarkoitus väistellä keltaisia palloja sekä kerätä pisteitä ampumalla niitä. 
+/// Keltaiset pallot yrittävät valloittaa ruudun! Pelin tarkoitus on väistellä keltaisia palloja sekä kerätä pisteitä ampumalla niitä. 
 /// Pelin alussa kilpikonnalla eli pelaajalla on kolme elämää ja se menettää yhden elämän osuessaan viholliseen eli palloon. Pelajaan kerätessä tarpeeksi monta pistettä, pelikentälle 
 /// ilmestyy bonuksia, joita keräämällä pelaaja saa jokaisesta pisteen ja 1/5 elämän.
 /// </summary>
