@@ -8,10 +8,12 @@ using Jypeli.Widgets;
 /// @author Laura Mella
 /// @version 17.03.2020
 
+
 /// <summary>
 /// Tasohyppelypeli
 /// Keltaiset pallot yrittävät valloittaa ruudun! Pelin tarkoitus väistellä keltaisia palloja sekä kerätä pisteitä ampumalla niitä. 
-/// Pelin alussa kilpikonnalla eli pelaajalla on kolme elämää ja se menettää yhden elämän osuessaan viholliseen eli palloon. 
+/// Pelin alussa kilpikonnalla eli pelaajalla on kolme elämää ja se menettää yhden elämän osuessaan viholliseen eli palloon. Pelajaan kerätessä tarpeeksi monta pistettä, pelikentälle 
+/// ilmestyy bonuksia, joita keräämällä pelaaja saa jokaisesta pisteen ja 1/5 elämän.
 /// </summary>
 
 
@@ -21,8 +23,9 @@ public class Kille : PhysicsGame
     const double HYPPYVOIMA = 2000;
     const double BLOKIN_LEVEYS = 80;
     const double BLOKIN_KORKEUS = 80;
-    public int pelaajanElama = 3;
+    public double pelaajanElama = 3.0;
     public IntMeter pisteLaskuri;
+   
 
     /// <summary>
     /// Luodaan pistelaskuri ja näyttö.
@@ -32,10 +35,10 @@ public class Kille : PhysicsGame
         pisteLaskuri = new IntMeter(0);
         Label pistenaytto = new Label();
         pistenaytto.BindTo(pisteLaskuri);
-        pistenaytto.Color = Color.Red; // Taustaväri
-        pistenaytto.TextColor = Color.Black; // Tekstin väri
+        pistenaytto.Color = Color.Red;
+        pistenaytto.TextColor = Color.Black;
         pistenaytto.Title = "Pisteet";
-        pistenaytto.Y = Screen.Top - 10; //Pistenäytön sijainti pelikentällä
+        pistenaytto.Y = Screen.Top - 10;
         Add(pistenaytto);
     }
 
@@ -55,10 +58,11 @@ public class Kille : PhysicsGame
         List<PhysicsObject> vihut = new List<PhysicsObject>();
 
         Timer lisaysAjastin = new Timer();
-        lisaysAjastin.Interval = 1.2; 
+        lisaysAjastin.Interval = 1.2;
         lisaysAjastin.Timeout += delegate ()
         {
             LuoVihu(vihut, "Vihu");
+
         };
         lisaysAjastin.Start();
         
@@ -97,8 +101,7 @@ public class Kille : PhysicsGame
     public void LuoVihu(List<PhysicsObject> vihut, string tagi)
     {
         PhysicsObject vihu = new PhysicsObject(80, 80, Shape.Circle);
-        Vector vihunSijainti;
-        vihunSijainti = RandomGen.NextVector(Level.BoundingRect);
+        Vector vihunSijainti = RandomGen.NextVector(Level.BoundingRect);
         vihu.Position = vihunSijainti;
         vihu.Image = LoadImage("pallo1");
         vihu.CanRotate = false;
@@ -113,10 +116,12 @@ public class Kille : PhysicsGame
         vihunAivot.ChangeMovementSeconds = 1;
         Add(vihu);
     }
+ 
 
     /// <summary>
-    /// Lisätään pistelaskuriin piste, kun ammus osuu vihuun
-    /// Äänitehoste pisteen saamisesta
+    /// Lisätään pistelaskuriin piste, kun ammus osuu vihuun.
+    /// Äänitehoste pisteen saamisesta.
+    /// Kutsutaan silmukassa aliohjelmaa "LuoBonus"
     /// </summary>
     /// <param name="vihu">vihollinen</param>
     /// <param name="ammus">pelaajan ammus</param>
@@ -124,9 +129,41 @@ public class Kille : PhysicsGame
     {
         SoundEffect pisteAani = LoadSoundEffect("piste");
         pisteAani.Play();
-        pisteLaskuri.Value +=1;
+        pisteLaskuri.Value += 1;
+        if (pisteLaskuri.Value % 9 == 0)
+        {
+            for (int i = 0; i < 3; i++) LuoBonus();           
+        }
+    }
+  
+     /// <summary>
+     /// Luodaan bonus satunnaiseen paikkaan pelikentällä
+     /// </summary>     
+    public void LuoBonus()
+    {
+        PhysicsObject bonus = new PhysicsObject(40, 40, Shape.Circle);
+        Vector bonusSijainti = RandomGen.NextVector(Level.BoundingRect);
+        bonus.Position = bonusSijainti;
+        bonus.Image = LoadImage("bonus");
+        AddCollisionHandler<PhysicsObject, PlatformCharacter>(bonus, BonusPisteet);
+        Add(bonus);
+       
     }
 
+    /// <summary>
+    ///  Pelaaja saa pisteen ja lisää elämää kerätessä bonuksen.
+    /// </summary>
+    /// <param name="bonus">bonus</param>
+    /// <param name="pelaaja">pelaaja</param>
+    public void BonusPisteet(PhysicsObject bonus, PhysicsObject pelaaja)
+    {
+        pelaajanElama += 0.2;
+        PlatformCharacter hahmo = pelaaja as PlatformCharacter;
+        pisteLaskuri.Value += 1;
+        SoundEffect osumaAani = LoadSoundEffect("piste");
+        osumaAani.Play();
+        bonus.Destroy();
+    }
 
     /// <summary> 
     ///  Pelaaja törmäsi vihuun. Kolmannesta törmäyksestä peliloppuu.
@@ -226,5 +263,4 @@ public class Kille : PhysicsGame
         taso.MakeStatic();
         Add(taso);
     }
-
 }

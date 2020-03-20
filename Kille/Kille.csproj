@@ -17,6 +17,9 @@
     <None Update="Content\ammusOsuu.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Content\bonus.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Content\jump.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
