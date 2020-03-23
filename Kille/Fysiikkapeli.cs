@@ -13,7 +13,7 @@ using Jypeli.Widgets;
 /// Tasohyppelypeli
 /// Keltaiset pallot yrittävät valloittaa ruudun! Pelin tarkoitus on väistellä keltaisia palloja sekä kerätä pisteitä ampumalla niitä. 
 /// Pelin alussa kilpikonnalla eli pelaajalla on kolme elämää ja se menettää yhden elämän osuessaan viholliseen eli palloon. Pelajaan kerätessä tarpeeksi monta pistettä, pelikentälle 
-/// ilmestyy bonuksia, joita keräämällä pelaaja saa jokaisesta pisteen ja 1/5 elämän.
+/// ilmestyy bonuksia, joita keräämällä pelaaja saa jokaisesta pisteen ja 1/4 elämän.
 /// </summary>
 
 
@@ -23,6 +23,10 @@ public class Kille : PhysicsGame
     const double HYPPYVOIMA = 2000;
     const double BLOKIN_LEVEYS = 80;
     const double BLOKIN_KORKEUS = 80;
+    const int RUUDUN_LEVEYS = 1024;
+    const int RUUDUN_KORKEUS = 768;
+    const int PAINOVOIMA_X = 0;
+    const int PAINOVOIMA_Y = -2500;
     public double pelaajanElama = 3.0;
     public IntMeter pisteLaskuri;
    
@@ -42,12 +46,13 @@ public class Kille : PhysicsGame
         Add(pistenaytto);
     }
 
+
     /// <summary>
     /// Aloitetaan peli, luodaan kenttä sekä käynnistetään ajastin, joka kutsuu aliohjelmaa, joka luo vihuja.
     /// </summary>
     public override void Begin()
     {
-        SetWindowSize(1024, 768);
+        SetWindowSize(RUUDUN_LEVEYS, RUUDUN_KORKEUS);
         TileMap kentta = TileMap.FromLevelAsset("kentta");
         kentta.SetTileMethod('t', LuoTaso, "taso");
         kentta.SetTileMethod('T', LuoTaso, "taso2");
@@ -55,13 +60,12 @@ public class Kille : PhysicsGame
         kentta.SetTileMethod('p', LuoPelaaja);
         kentta.Execute(BLOKIN_LEVEYS, BLOKIN_KORKEUS);
         LuoPistelaskuri(); //Aliohjelmakutsu pistelaskurille
-        List<PhysicsObject> vihut = new List<PhysicsObject>();
-
+      
         Timer lisaysAjastin = new Timer();
         lisaysAjastin.Interval = 1.2;
         lisaysAjastin.Timeout += delegate ()
         {
-            LuoVihu(vihut, "Vihu");
+            LuoVihu();
 
         };
         lisaysAjastin.Start();
@@ -70,9 +74,10 @@ public class Kille : PhysicsGame
         Level.CreateBorders();
         Camera.ZoomToLevel();
 
-        Gravity = new Vector(0, -2500);
+        Gravity = new Vector(PAINOVOIMA_X, PAINOVOIMA_Y); 
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
     }
+
 
     /// <summary>
     /// Luodaan pelaaja sekä lisätään näppäimet, joilla sitä liikutetaan sekä ammutaan.
@@ -93,19 +98,14 @@ public class Kille : PhysicsGame
         Keyboard.Listen(Key.Space, ButtonState.Pressed, Heita, "Heita ammus", pelaaja, "Ammus");
     }
 
+
     /// <summary>
     /// Aliohjelma, jossa luodaan vihut ja lisätään niille tekoäly.
     /// </summary>
-    /// <param name="vihut">vihut</param>
-    /// <param name="tagi">Vihun tagi</param>
-    public void LuoVihu(List<PhysicsObject> vihut, string tagi)
+    public void LuoVihu()
     {
-        PhysicsObject vihu = new PhysicsObject(80, 80, Shape.Circle);
-        Vector vihunSijainti = RandomGen.NextVector(Level.BoundingRect);
-        vihu.Position = vihunSijainti;
-        vihu.Image = LoadImage("pallo1");
+        PhysicsObject vihu = LuoKohde(80, RandomGen.NextVector(Level.BoundingRect), LoadImage("pallo1"));
         vihu.CanRotate = false;   
-           tagi = "Vihu";
         AddCollisionHandler<PhysicsObject, PlatformCharacter>(vihu, PelaajaTormasiVihuun);
         AddCollisionHandler(vihu, "Ammus", CollisionHandler.DestroyObject);
         AddCollisionHandler(vihu, "Ammus", Osuma);
@@ -135,20 +135,34 @@ public class Kille : PhysicsGame
             for (int i = 0; i < 3; i++) LuoBonus();           
         }
     }
-  
+ 
+    
      /// <summary>
-     /// Luodaan bonus satunnaiseen paikkaan pelikentällä
+     /// Luodaan bonus satunnaiseen paikkaan pelikentällä.
      /// </summary>     
     public void LuoBonus()
     {
-        PhysicsObject bonus = new PhysicsObject(40, 40, Shape.Circle);
-        Vector bonusSijainti = RandomGen.NextVector(Level.BoundingRect);
-        bonus.Position = bonusSijainti;
-        bonus.Image = LoadImage("bonus");
+        PhysicsObject bonus = LuoKohde(40, RandomGen.NextVector(Level.BoundingRect), LoadImage("bonus"));
         AddCollisionHandler<PhysicsObject, PlatformCharacter>(bonus, BonusPisteet);
-        Add(bonus);
-       
+        Add(bonus);      
     }
+
+
+    /// <summary>
+    /// Funktio, joka palauttaa parametreina koon, paikan ja kuvan. Näitä voidaan hyödyntää luodessa kohteita pelikentälle.
+    /// </summary>
+    /// <param name="koko">Kohteen koko</param>
+    /// <param name="paikka">Kohteen paikka</param>
+    /// <param name="kuva">Kohteen kuva</param>
+    /// <returns></returns>
+    public PhysicsObject LuoKohde(double koko, Vector paikka, Image kuva)
+    {
+       PhysicsObject kohde = new PhysicsObject(koko, koko);
+       kohde.Position = paikka;
+       kohde.Image = kuva;
+        return kohde;
+    }
+
 
     /// <summary>
     ///  Pelaaja saa pisteen ja lisää elämää kerätessä bonuksen.
@@ -164,6 +178,7 @@ public class Kille : PhysicsGame
         osumaAani.Play();
         bonus.Destroy();
     }
+
 
     /// <summary> 
     ///  Pelaaja törmäsi vihuun. Kolmannesta törmäyksestä peliloppuu.
@@ -184,6 +199,7 @@ public class Kille : PhysicsGame
             LuoLoppuValikko();
         }
     }
+  
     
     /// <summary>
     /// Luodaan loppuvalikko, jossa taustamusiikki.
@@ -194,21 +210,20 @@ public class Kille : PhysicsGame
         MultiSelectWindow loppuValikko = new MultiSelectWindow("Hienoa! Sait " + pisteLaskuri.Value + " pistettä.", "Aloita peli uudestaan", "Lopeta");
         loppuValikko.AddItemHandler(0, AloitaPeliUudestaan);
         loppuValikko.AddItemHandler(1, Exit);
-        //SoundEffect loppuAani = LoadSoundEffect("loppu");
-        //loppuAani.Play();
         Add(loppuValikko);
 
     }
+
 
     /// <summary>
     /// Aliohjelma, joka aloittaa pelin uudestaan ja nollaa laskurit
     /// </summary>
       public void AloitaPeliUudestaan()
-        {
+      {
         ClearAll();          
         pelaajanElama += 3;
         Begin();
-         }
+      }
 
 
     /// <summary>
@@ -226,6 +241,7 @@ public class Kille : PhysicsGame
         Add(ammus, 1);
     }
 
+
     /// <summary>
     /// Pelaaja hyppää
     /// </summary>
@@ -238,6 +254,7 @@ public class Kille : PhysicsGame
         hyppyAani.Play();
     }
 
+
     /// <summary>
     /// Pelaajan liikutus
     /// </summary>
@@ -247,6 +264,7 @@ public class Kille : PhysicsGame
     {
         pelaaja.Walk(suunta);
     }
+
 
     /// <summary>
     /// Luodaan tasot
