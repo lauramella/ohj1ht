@@ -104,8 +104,8 @@ public class Kille : PhysicsGame
         Vector vihunSijainti = RandomGen.NextVector(Level.BoundingRect);
         vihu.Position = vihunSijainti;
         vihu.Image = LoadImage("pallo1");
-        vihu.CanRotate = false;
-        tagi = "Vihu";
+        vihu.CanRotate = false;   
+           tagi = "Vihu";
         AddCollisionHandler<PhysicsObject, PlatformCharacter>(vihu, PelaajaTormasiVihuun);
         AddCollisionHandler(vihu, "Ammus", CollisionHandler.DestroyObject);
         AddCollisionHandler(vihu, "Ammus", Osuma);
@@ -157,7 +157,7 @@ public class Kille : PhysicsGame
     /// <param name="pelaaja">pelaaja</param>
     public void BonusPisteet(PhysicsObject bonus, PhysicsObject pelaaja)
     {
-        pelaajanElama += 0.2;
+        pelaajanElama += 0.25;
         PlatformCharacter hahmo = pelaaja as PlatformCharacter;
         pisteLaskuri.Value += 1;
         SoundEffect osumaAani = LoadSoundEffect("piste");
@@ -194,8 +194,8 @@ public class Kille : PhysicsGame
         MultiSelectWindow loppuValikko = new MultiSelectWindow("Hienoa! Sait " + pisteLaskuri.Value + " pistettä.", "Aloita peli uudestaan", "Lopeta");
         loppuValikko.AddItemHandler(0, AloitaPeliUudestaan);
         loppuValikko.AddItemHandler(1, Exit);
-        SoundEffect loppuAani = LoadSoundEffect("loppu");
-        loppuAani.Play();
+        //SoundEffect loppuAani = LoadSoundEffect("loppu");
+        //loppuAani.Play();
         Add(loppuValikko);
 
     }
