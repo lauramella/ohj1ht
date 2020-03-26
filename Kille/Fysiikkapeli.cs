@@ -14,6 +14,9 @@ using Jypeli.Widgets;
 /// Keltaiset pallot yrittävät valloittaa ruudun! Pelin tarkoitus on väistellä keltaisia palloja sekä kerätä pisteitä ampumalla niitä. 
 /// Pelin alussa kilpikonnalla eli pelaajalla on kolme elämää ja se menettää yhden elämän osuessaan viholliseen eli palloon. Pelajaan kerätessä tarpeeksi monta pistettä, pelikentälle 
 /// ilmestyy bonuksia, joita keräämällä pelaaja saa jokaisesta pisteen ja 1/4 elämän.
+/// TODO: silmukka, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/2020k/demot/demo7?answerNumber=22&b=aeO7kmFYXJhg&size=1&task=d7t1&user=melllaem
+/// TODO: lista, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/2020k/demot/demo8?answerNumber=19&b=RkldzKCtwy7I&size=1&task=d8teht1&user=melllaem
+/// TODO: taulukko, ks: https://tim.jyu.fi/view/kurssit/tie/ohj1/2020k/demot/demo8?answerNumber=7&b=cPZSnVFY77VP&size=1&task=d8teht3c&user=melllaem
 /// </summary>
 
 
